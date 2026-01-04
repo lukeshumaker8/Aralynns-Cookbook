@@ -26,12 +26,25 @@ A recipe website with responsive cards and detailed recipe pages, built with Rea
 1. Go to [turso.tech](https://turso.tech) and sign up (free tier available)
 
 2. Install the Turso CLI:
-   ```bash
-   # macOS/Linux
-   curl -sSfL https://get.tur.so/install.sh | bash
 
-   # Windows (PowerShell)
-   iwr get.tur.so/install.ps1 -useb | iex
+   **Windows (using Scoop):**
+   ```powershell
+   # Install Scoop first if you don't have it
+   Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+   Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression
+
+   # Then install Turso
+   scoop install turso
+   ```
+
+   **Windows (Manual Download):**
+   - Go to [github.com/tursodatabase/turso-cli/releases](https://github.com/tursodatabase/turso-cli/releases)
+   - Download the latest `turso_windows_amd64.zip`
+   - Extract and add to your PATH
+
+   **macOS/Linux:**
+   ```bash
+   curl -sSfL https://get.tur.so/install.sh | bash
    ```
 
 3. Login and create a database:
@@ -46,7 +59,7 @@ A recipe website with responsive cards and detailed recipe pages, built with Rea
    turso db tokens create aralynns-cookbook
    ```
 
-   Save these values - you'll need them for Netlify!
+   **Save these values - you'll need them for Netlify!**
 
 ### Step 2: Initialize the Database
 
@@ -57,29 +70,63 @@ A recipe website with responsive cards and detailed recipe pages, built with Rea
    ```
 
 2. Run the initialization script with your credentials:
-   ```bash
-   # Windows (PowerShell)
-   $env:TURSO_DATABASE_URL="your-database-url"; $env:TURSO_AUTH_TOKEN="your-token"; node init-turso.js
 
-   # macOS/Linux
-   TURSO_DATABASE_URL="your-database-url" TURSO_AUTH_TOKEN="your-token" node init-turso.js
+   **Windows (PowerShell):**
+   ```powershell
+   $env:TURSO_DATABASE_URL="libsql://your-db-name-yourname.turso.io"
+   $env:TURSO_AUTH_TOKEN="your-token-here"
+   node init-turso.js
+   ```
+
+   **macOS/Linux:**
+   ```bash
+   TURSO_DATABASE_URL="libsql://your-db-name-yourname.turso.io" TURSO_AUTH_TOKEN="your-token-here" node init-turso.js
    ```
 
 ### Step 3: Deploy to Netlify
 
 1. Push this repo to GitHub
 
-2. Go to [netlify.com](https://netlify.com) and click "Add new site" > "Import an existing project"
+2. Go to [netlify.com](https://netlify.com) and click **"Add new site"** → **"Import an existing project"**
 
 3. Connect your GitHub repo
 
-4. **Important**: Add environment variables in Netlify:
-   - Go to Site Settings > Environment Variables
-   - Add:
-     - `TURSO_DATABASE_URL` = your database URL from Step 1
-     - `TURSO_AUTH_TOKEN` = your auth token from Step 1
+4. Netlify should auto-detect settings. If not, use:
+   - **Base directory:** `frontend`
+   - **Build command:** `npm install && npm run build`
+   - **Publish directory:** `frontend/dist`
 
-5. Deploy! Netlify will automatically build and deploy your site.
+5. **Add Environment Variables** (Site Settings → Environment Variables):
+   - `TURSO_DATABASE_URL` = your database URL from Step 1
+   - `TURSO_AUTH_TOKEN` = your auth token from Step 1
+
+6. Click **Deploy!**
+
+### Step 4: Connect a Custom Domain
+
+1. In Netlify, go to **Site Settings** → **Domain management**
+
+2. Click **"Add a domain"**
+
+3. Enter your domain name (e.g., `aralynns-cookbook.com`)
+
+4. **Option A - Use Netlify DNS (Recommended):**
+   - Click "Set up Netlify DNS"
+   - Netlify will give you nameservers (like `dns1.p01.nsone.net`)
+   - Go to your domain registrar (GoDaddy, Namecheap, etc.)
+   - Update nameservers to the ones Netlify provided
+   - Wait 24-48 hours for propagation
+
+5. **Option B - Keep your current DNS:**
+   - Add these DNS records at your registrar:
+   - **A Record:** `@` → `75.2.60.5`
+   - **CNAME Record:** `www` → `your-site-name.netlify.app`
+
+6. **Enable HTTPS:**
+   - Go to **Domain management** → **HTTPS**
+   - Click **"Verify DNS configuration"**
+   - Click **"Provision certificate"**
+   - Netlify will automatically set up free SSL
 
 ---
 
@@ -139,3 +186,18 @@ The frontend will be available at `http://localhost:5173` and the API at `http:/
 - `GET /api/recipes/:id` - Get a single recipe with full details
 - `GET /api/recipes/filters/options` - Get available filter options
 - `POST /api/recipes` - Create a new recipe
+
+---
+
+## Troubleshooting
+
+**"Cannot GET /" error locally:**
+- Make sure you're accessing `http://localhost:5173` (frontend), not `http://localhost:3001` (API)
+
+**Database not initialized:**
+- Run `cd backend && npm run init-db` for local dev
+- Run the `scripts/init-turso.js` script for production
+
+**Netlify build fails:**
+- Check that environment variables are set correctly
+- Make sure base directory is set to `frontend`
