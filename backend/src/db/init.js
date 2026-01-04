@@ -1,4 +1,4 @@
-const Database = require('better-sqlite3');
+const initSqlJs = require('sql.js');
 const fs = require('fs');
 const path = require('path');
 
@@ -10,13 +10,7 @@ if (!fs.existsSync(dataDir)) {
     fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const db = new Database(dbPath);
-
-// Read and execute schema
-const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
-db.exec(schema);
-
-// Seed with sample recipes
+// Sample recipes data
 const sampleRecipes = [
     {
         name: 'Philly Cheesesteak',
@@ -204,63 +198,55 @@ const sampleRecipes = [
     }
 ];
 
-// Insert sample data
-const insertRecipe = db.prepare(`
-    INSERT INTO recipes (name, description, image_url, prep_time, cook_time, servings, difficulty, meal_type, cooking_method)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-`);
+async function initDatabase() {
+    const SQL = await initSqlJs();
+    const db = new SQL.Database();
 
-const insertIngredient = db.prepare(`
-    INSERT INTO ingredients (recipe_id, name, amount, unit)
-    VALUES (?, ?, ?, ?)
-`);
+    // Read and execute schema
+    const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');
+    db.run(schema);
 
-const insertInstruction = db.prepare(`
-    INSERT INTO instructions (recipe_id, step_number, instruction)
-    VALUES (?, ?, ?)
-`);
-
-const insertTag = db.prepare(`
-    INSERT OR IGNORE INTO tags (name) VALUES (?)
-`);
-
-const insertRecipeTag = db.prepare(`
-    INSERT INTO recipe_tags (recipe_id, tag_id)
-    VALUES (?, (SELECT id FROM tags WHERE name = ?))
-`);
-
-const insertAll = db.transaction((recipes) => {
-    for (const recipe of recipes) {
-        const result = insertRecipe.run(
-            recipe.name,
-            recipe.description,
-            recipe.image_url,
-            recipe.prep_time,
-            recipe.cook_time,
-            recipe.servings,
-            recipe.difficulty,
-            recipe.meal_type,
-            recipe.cooking_method
+    // Insert sample data
+    for (const recipe of sampleRecipes) {
+        db.run(
+            `INSERT INTO recipes (name, description, image_url, prep_time, cook_time, servings, difficulty, meal_type, cooking_method)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [recipe.name, recipe.description, recipe.image_url, recipe.prep_time, recipe.cook_time, recipe.servings, recipe.difficulty, recipe.meal_type, recipe.cooking_method]
         );
 
-        const recipeId = result.lastInsertRowid;
+        const recipeIdResult = db.exec('SELECT last_insert_rowid() as id');
+        const recipeId = recipeIdResult[0].values[0][0];
 
         for (const ingredient of recipe.ingredients) {
-            insertIngredient.run(recipeId, ingredient.name, ingredient.amount, ingredient.unit);
+            db.run(
+                'INSERT INTO ingredients (recipe_id, name, amount, unit) VALUES (?, ?, ?, ?)',
+                [recipeId, ingredient.name, ingredient.amount, ingredient.unit]
+            );
         }
 
         recipe.instructions.forEach((instruction, index) => {
-            insertInstruction.run(recipeId, index + 1, instruction);
+            db.run(
+                'INSERT INTO instructions (recipe_id, step_number, instruction) VALUES (?, ?, ?)',
+                [recipeId, index + 1, instruction]
+            );
         });
 
         for (const tag of recipe.tags) {
-            insertTag.run(tag);
-            insertRecipeTag.run(recipeId, tag);
+            db.run('INSERT OR IGNORE INTO tags (name) VALUES (?)', [tag]);
+            db.run(
+                'INSERT INTO recipe_tags (recipe_id, tag_id) VALUES (?, (SELECT id FROM tags WHERE name = ?))',
+                [recipeId, tag]
+            );
         }
     }
-});
 
-insertAll(sampleRecipes);
+    // Save database to file
+    const data = db.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(dbPath, buffer);
 
-console.log('Database initialized with sample recipes!');
-db.close();
+    console.log('Database initialized with sample recipes!');
+    db.close();
+}
+
+initDatabase().catch(console.error);

@@ -1,11 +1,35 @@
 const express = require('express');
-const db = require('../db/database');
+const { getDatabase, prepare } = require('../db/database');
 
 const router = express.Router();
 
-// Get all recipes (with optional filters)
-router.get('/', (req, res) => {
+// Get filter options - this route must come before /:id
+router.get('/filters/options', async (req, res) => {
     try {
+        await getDatabase();
+
+        const mealTypes = prepare('SELECT DISTINCT meal_type FROM recipes WHERE meal_type IS NOT NULL').all();
+        const difficulties = prepare('SELECT DISTINCT difficulty FROM recipes WHERE difficulty IS NOT NULL').all();
+        const cookingMethods = prepare('SELECT DISTINCT cooking_method FROM recipes WHERE cooking_method IS NOT NULL').all();
+        const tags = prepare('SELECT name FROM tags ORDER BY name').all();
+
+        res.json({
+            meal_types: mealTypes.map(m => m.meal_type),
+            difficulties: difficulties.map(d => d.difficulty),
+            cooking_methods: cookingMethods.map(c => c.cooking_method),
+            tags: tags.map(t => t.name)
+        });
+    } catch (error) {
+        console.error('Error fetching filter options:', error);
+        res.status(500).json({ error: 'Failed to fetch filter options' });
+    }
+});
+
+// Get all recipes (with optional filters)
+router.get('/', async (req, res) => {
+    try {
+        await getDatabase();
+
         const { meal_type, difficulty, cooking_method, search } = req.query;
 
         let query = `
@@ -39,7 +63,7 @@ router.get('/', (req, res) => {
 
         query += ' GROUP BY r.id ORDER BY r.created_at DESC';
 
-        const recipes = db.prepare(query).all(...params);
+        const recipes = prepare(query).all(...params);
 
         // Parse tags into array
         const result = recipes.map(recipe => ({
@@ -56,12 +80,14 @@ router.get('/', (req, res) => {
 });
 
 // Get single recipe with full details
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
     try {
+        await getDatabase();
+
         const { id } = req.params;
 
         // Get recipe
-        const recipe = db.prepare(`
+        const recipe = prepare(`
             SELECT r.*, GROUP_CONCAT(DISTINCT t.name) as tags
             FROM recipes r
             LEFT JOIN recipe_tags rt ON r.id = rt.recipe_id
@@ -75,14 +101,14 @@ router.get('/:id', (req, res) => {
         }
 
         // Get ingredients
-        const ingredients = db.prepare(`
+        const ingredients = prepare(`
             SELECT name, amount, unit
             FROM ingredients
             WHERE recipe_id = ?
         `).all(id);
 
         // Get instructions
-        const instructions = db.prepare(`
+        const instructions = prepare(`
             SELECT step_number, instruction
             FROM instructions
             WHERE recipe_id = ?
@@ -99,26 +125,6 @@ router.get('/:id', (req, res) => {
     } catch (error) {
         console.error('Error fetching recipe:', error);
         res.status(500).json({ error: 'Failed to fetch recipe' });
-    }
-});
-
-// Get filter options
-router.get('/filters/options', (req, res) => {
-    try {
-        const mealTypes = db.prepare('SELECT DISTINCT meal_type FROM recipes WHERE meal_type IS NOT NULL').all();
-        const difficulties = db.prepare('SELECT DISTINCT difficulty FROM recipes WHERE difficulty IS NOT NULL').all();
-        const cookingMethods = db.prepare('SELECT DISTINCT cooking_method FROM recipes WHERE cooking_method IS NOT NULL').all();
-        const tags = db.prepare('SELECT name FROM tags ORDER BY name').all();
-
-        res.json({
-            meal_types: mealTypes.map(m => m.meal_type),
-            difficulties: difficulties.map(d => d.difficulty),
-            cooking_methods: cookingMethods.map(c => c.cooking_method),
-            tags: tags.map(t => t.name)
-        });
-    } catch (error) {
-        console.error('Error fetching filter options:', error);
-        res.status(500).json({ error: 'Failed to fetch filter options' });
     }
 });
 
