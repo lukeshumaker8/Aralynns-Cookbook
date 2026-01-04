@@ -8,8 +8,9 @@ CREATE TABLE IF NOT EXISTS recipes (
     cook_time INTEGER,  -- in minutes
     servings INTEGER,
     difficulty TEXT CHECK(difficulty IN ('Easy', 'Medium', 'Hard')),
-    meal_type TEXT,     -- e.g., 'Breakfast', 'Lunch', 'Dinner', 'Dessert', 'Snack'
-    cooking_method TEXT, -- e.g., 'Oven', 'Stovetop', 'Grill', 'No-Cook', 'Slow Cooker'
+    meal_type TEXT,     -- e.g., 'Breakfast', 'Lunch', 'Dinner', 'To-Go'
+    cooking_method TEXT, -- e.g., 'Oven', 'Stovetop', 'Slow Cooker'
+    recipe_url TEXT,    -- external link to full recipe
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 

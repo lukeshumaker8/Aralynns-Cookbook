@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import RecipePage from './pages/RecipePage'
+import AddRecipePage from './pages/AddRecipePage'
 
 function App() {
   return (
@@ -11,10 +12,11 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/recipe/:id" element={<RecipePage />} />
+          <Route path="/add" element={<AddRecipePage />} />
         </Routes>
       </main>
       <footer className="footer">
-        <p>© 2024 Aralynn's Cookbook. Made with ❤️</p>
+        <p>© 2024 Aralynn's Cookbook. Made with love</p>
       </footer>
     </div>
   )

@@ -1,27 +1,104 @@
 const express = require('express');
-const { getDatabase, prepare } = require('../db/database');
+const { getDatabase, prepare, saveDatabase } = require('../db/database');
 
 const router = express.Router();
+
+// Predefined options
+const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'To-Go'];
+const COOKING_METHODS = ['Oven', 'Stovetop', 'Slow Cooker'];
+const DIFFICULTIES = ['Easy', 'Medium', 'Hard'];
 
 // Get filter options - this route must come before /:id
 router.get('/filters/options', async (req, res) => {
     try {
         await getDatabase();
-
-        const mealTypes = prepare('SELECT DISTINCT meal_type FROM recipes WHERE meal_type IS NOT NULL').all();
-        const difficulties = prepare('SELECT DISTINCT difficulty FROM recipes WHERE difficulty IS NOT NULL').all();
-        const cookingMethods = prepare('SELECT DISTINCT cooking_method FROM recipes WHERE cooking_method IS NOT NULL').all();
         const tags = prepare('SELECT name FROM tags ORDER BY name').all();
 
         res.json({
-            meal_types: mealTypes.map(m => m.meal_type),
-            difficulties: difficulties.map(d => d.difficulty),
-            cooking_methods: cookingMethods.map(c => c.cooking_method),
+            meal_types: MEAL_TYPES,
+            difficulties: DIFFICULTIES,
+            cooking_methods: COOKING_METHODS,
             tags: tags.map(t => t.name)
         });
     } catch (error) {
         console.error('Error fetching filter options:', error);
         res.status(500).json({ error: 'Failed to fetch filter options' });
+    }
+});
+
+// Create a new recipe
+router.post('/', async (req, res) => {
+    try {
+        await getDatabase();
+
+        const {
+            name,
+            description,
+            image_url,
+            prep_time,
+            cook_time,
+            servings,
+            difficulty,
+            meal_type,
+            cooking_method,
+            recipe_url,
+            ingredients,
+            instructions
+        } = req.body;
+
+        if (!name) {
+            return res.status(400).json({ error: 'Recipe name is required' });
+        }
+
+        // Insert recipe
+        const result = prepare(`
+            INSERT INTO recipes (name, description, image_url, prep_time, cook_time, servings, difficulty, meal_type, cooking_method, recipe_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            name,
+            description || null,
+            image_url || null,
+            prep_time || null,
+            cook_time || null,
+            servings || null,
+            difficulty || null,
+            meal_type || null,
+            cooking_method || null,
+            recipe_url || null
+        );
+
+        const recipeId = result.lastInsertRowid;
+
+        // Insert ingredients if provided
+        if (ingredients && ingredients.length > 0) {
+            for (const ingredient of ingredients) {
+                prepare('INSERT INTO ingredients (recipe_id, name, amount, unit) VALUES (?, ?, ?, ?)').run(
+                    recipeId,
+                    ingredient.name,
+                    ingredient.amount || '',
+                    ingredient.unit || ''
+                );
+            }
+        }
+
+        // Insert instructions if provided
+        if (instructions && instructions.length > 0) {
+            instructions.forEach((instruction, index) => {
+                prepare('INSERT INTO instructions (recipe_id, step_number, instruction) VALUES (?, ?, ?)').run(
+                    recipeId,
+                    index + 1,
+                    instruction
+                );
+            });
+        }
+
+        // Save database to file
+        saveDatabase();
+
+        res.status(201).json({ id: recipeId, message: 'Recipe created successfully' });
+    } catch (error) {
+        console.error('Error creating recipe:', error);
+        res.status(500).json({ error: 'Failed to create recipe' });
     }
 });
 

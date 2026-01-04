@@ -116,32 +116,52 @@ function RecipePage() {
         </header>
 
         <div className="recipe-content">
-          <section className="ingredients-section">
-            <h2>Ingredients</h2>
-            <ul className="ingredients-list">
-              {recipe.ingredients?.map((ing, index) => (
-                <li key={index} className="ingredient-item">
-                  <span className="ingredient-amount">
-                    {ing.amount} {ing.unit}
-                  </span>
-                  <span className="ingredient-name">{ing.name}</span>
-                </li>
-              ))}
-            </ul>
-          </section>
+          {recipe.ingredients && recipe.ingredients.length > 0 && (
+            <section className="ingredients-section">
+              <h2>Ingredients</h2>
+              <ul className="ingredients-list">
+                {recipe.ingredients.map((ing, index) => (
+                  <li key={index} className="ingredient-item">
+                    <span className="ingredient-amount">
+                      {ing.amount} {ing.unit}
+                    </span>
+                    <span className="ingredient-name">{ing.name}</span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
-          <section className="instructions-section">
-            <h2>Instructions</h2>
-            <ol className="instructions-list">
-              {recipe.instructions?.map((step) => (
-                <li key={step.step_number} className="instruction-step">
-                  <span className="step-number">{step.step_number}</span>
-                  <p>{step.instruction}</p>
-                </li>
-              ))}
-            </ol>
-          </section>
+          {recipe.instructions && recipe.instructions.length > 0 && (
+            <section className="instructions-section">
+              <h2>Instructions</h2>
+              <ol className="instructions-list">
+                {recipe.instructions.map((step) => (
+                  <li key={step.step_number} className="instruction-step">
+                    <span className="step-number">{step.step_number}</span>
+                    <p>{step.instruction}</p>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {(!recipe.ingredients || recipe.ingredients.length === 0) &&
+           (!recipe.instructions || recipe.instructions.length === 0) && (
+            <div className="no-recipe-content">
+              <p>No detailed recipe information available yet.</p>
+            </div>
+          )}
         </div>
+
+        {recipe.recipe_url && (
+          <div className="recipe-external-link">
+            <a href={recipe.recipe_url} target="_blank" rel="noopener noreferrer" className="external-link">
+              Learn more here
+              <span className="external-icon">→</span>
+            </a>
+          </div>
+        )}
       </article>
     </div>
   )
