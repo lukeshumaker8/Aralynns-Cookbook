@@ -85,6 +85,11 @@ function RecipePage() {
       <Link to="/" className="back-link">← Back to recipes</Link>
 
       <article className="recipe-detail">
+        {recipe.image_url && (
+          <div className="recipe-hero-image">
+            <img src={recipe.image_url} alt={recipe.name} />
+          </div>
+        )}
         <header className="recipe-header">
           <div className="recipe-header-content">
             <div className="recipe-header-top">

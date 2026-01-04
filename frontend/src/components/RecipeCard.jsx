@@ -19,9 +19,13 @@ function RecipeCard({ recipe }) {
   return (
     <Link to={`/recipe/${recipe.id}`} className="recipe-card">
       <div className="recipe-card-image">
-        <div className="recipe-card-placeholder">
-          <span>🍽️</span>
-        </div>
+        {recipe.image_url ? (
+          <img src={recipe.image_url} alt={recipe.name} className="recipe-card-img" />
+        ) : (
+          <div className="recipe-card-placeholder">
+            <span>🍽️</span>
+          </div>
+        )}
         <div className="recipe-card-badges">
           <span
             className="badge difficulty"

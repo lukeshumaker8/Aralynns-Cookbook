@@ -5,10 +5,15 @@ const MEAL_TYPES = ['Breakfast', 'Lunch', 'Dinner', 'To-Go']
 const COOKING_METHODS = ['Oven', 'Stovetop', 'Slow Cooker']
 const DIFFICULTIES = ['Easy', 'Medium', 'Hard']
 
+const CLOUDINARY_CLOUD_NAME = 'djzk1n1zc'
+const CLOUDINARY_UPLOAD_PRESET = 'acookbook'
+
 function AddRecipePage() {
   const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [imagePreview, setImagePreview] = useState(null)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -28,6 +33,44 @@ function AddRecipePage() {
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    // Show local preview immediately
+    const reader = new FileReader()
+    reader.onload = (e) => setImagePreview(e.target.result)
+    reader.readAsDataURL(file)
+
+    // Upload to Cloudinary
+    setUploading(true)
+    try {
+      const uploadData = new FormData()
+      uploadData.append('file', file)
+      uploadData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
+
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        { method: 'POST', body: uploadData }
+      )
+
+      if (!res.ok) throw new Error('Upload failed')
+
+      const data = await res.json()
+      setFormData(prev => ({ ...prev, image_url: data.secure_url }))
+    } catch (err) {
+      setError('Failed to upload image. Please try again.')
+      setImagePreview(null)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const removeImage = () => {
+    setImagePreview(null)
+    setFormData(prev => ({ ...prev, image_url: '' }))
   }
 
   const handleIngredientChange = (index, field, value) => {
@@ -135,15 +178,39 @@ function AddRecipePage() {
           </div>
 
           <div className="form-group">
-            <label htmlFor="image_url">Image URL</label>
-            <input
-              type="url"
-              id="image_url"
-              name="image_url"
-              value={formData.image_url}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-            />
+            <label>Recipe Image</label>
+            <div className="image-upload-area">
+              {imagePreview || formData.image_url ? (
+                <div className="image-preview-container">
+                  <img
+                    src={imagePreview || formData.image_url}
+                    alt="Recipe preview"
+                    className="image-preview"
+                  />
+                  <button
+                    type="button"
+                    className="remove-image-btn"
+                    onClick={removeImage}
+                  >
+                    Remove
+                  </button>
+                  {uploading && <div className="upload-overlay">Uploading...</div>}
+                </div>
+              ) : (
+                <label className="upload-label">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    className="file-input"
+                  />
+                  <span className="upload-icon">+</span>
+                  <span className="upload-text">
+                    {uploading ? 'Uploading...' : 'Click to upload image'}
+                  </span>
+                </label>
+              )}
+            </div>
           </div>
         </div>
 
