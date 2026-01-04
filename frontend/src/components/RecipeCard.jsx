@@ -41,10 +41,6 @@ function RecipeCard({ recipe }) {
             <span className="meta-icon">⏱️</span>
             <span>{formatTime(recipe.total_time)}</span>
           </div>
-          <div className="meta-item">
-            <span className="meta-icon">👥</span>
-            <span>{recipe.servings} servings</span>
-          </div>
         </div>
         {recipe.tags && recipe.tags.length > 0 && (
           <div className="recipe-tags">

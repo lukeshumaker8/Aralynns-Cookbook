@@ -789,6 +789,151 @@ a {
   grid-column: 1 / -1;
 }
 
+/* Recipe Header Top - Badge and Delete Button */
+.recipe-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.delete-button {
+  padding: 0.5rem 1rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.delete-button:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.delete-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Ingredients Input List */
+.ingredients-input-list,
+.instructions-input-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.ingredient-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.ingredient-amount-input {
+  width: 80px;
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+}
+
+.ingredient-unit-input {
+  width: 80px;
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+}
+
+.ingredient-name-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+}
+
+.ingredient-amount-input:focus,
+.ingredient-unit-input:focus,
+.ingredient-name-input:focus,
+.instruction-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.1);
+}
+
+/* Instructions Input List */
+.instruction-input-row {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+}
+
+.step-label {
+  font-weight: 600;
+  color: var(--color-primary);
+  min-width: 60px;
+  padding-top: 0.75rem;
+}
+
+.instruction-input {
+  flex: 1;
+  padding: 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-family: var(--font-body);
+  resize: vertical;
+}
+
+/* Add/Remove Buttons */
+.add-btn {
+  padding: 0.75rem 1.25rem;
+  background: transparent;
+  color: var(--color-primary);
+  border: 2px dashed var(--color-primary);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.add-btn:hover {
+  background: rgba(232, 93, 4, 0.08);
+}
+
+.remove-btn {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  color: #dc2626;
+  border: 2px solid #dc2626;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.remove-btn:hover:not(:disabled) {
+  background: #dc2626;
+  color: white;
+}
+
+.remove-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 /* Responsive Styles */
 @media (max-width: 768px) {
   .main-content {
@@ -879,6 +1024,37 @@ a {
   .btn-primary,
   .btn-secondary {
     width: 100%;
+  }
+
+  /* Ingredient/Instruction inputs on mobile */
+  .ingredient-input-row {
+    flex-wrap: wrap;
+  }
+
+  .ingredient-amount-input,
+  .ingredient-unit-input {
+    width: calc(50% - 1.25rem);
+  }
+
+  .ingredient-name-input {
+    width: 100%;
+    order: -1;
+    margin-bottom: 0.25rem;
+  }
+
+  .instruction-input-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .step-label {
+    padding-top: 0;
+    margin-bottom: 0.25rem;
+  }
+
+  .remove-btn {
+    align-self: flex-end;
+    margin-top: 0.5rem;
   }
 
   .recipe-external-link {

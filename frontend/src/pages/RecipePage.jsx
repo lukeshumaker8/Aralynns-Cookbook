@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 
 function RecipePage() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [recipe, setRecipe] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     fetchRecipe()
@@ -23,6 +25,22 @@ function RecipePage() {
       setError(err.message)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this recipe?')) {
+      return
+    }
+
+    try {
+      setDeleting(true)
+      const res = await fetch(`/api/recipes/${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Failed to delete recipe')
+      navigate('/')
+    } catch (err) {
+      alert(err.message)
+      setDeleting(false)
     }
   }
 
@@ -69,7 +87,16 @@ function RecipePage() {
       <article className="recipe-detail">
         <header className="recipe-header">
           <div className="recipe-header-content">
-            <span className="meal-type-badge">{recipe.meal_type}</span>
+            <div className="recipe-header-top">
+              <span className="meal-type-badge">{recipe.meal_type}</span>
+              <button
+                className="delete-button"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting...' : 'Delete Recipe'}
+              </button>
+            </div>
             <h1>{recipe.name}</h1>
             <p className="recipe-description-full">{recipe.description}</p>
 
@@ -85,10 +112,6 @@ function RecipePage() {
               <div className="info-item">
                 <span className="info-label">Total Time</span>
                 <span className="info-value">{formatTime(recipe.total_time)}</span>
-              </div>
-              <div className="info-item">
-                <span className="info-label">Servings</span>
-                <span className="info-value">{recipe.servings}</span>
               </div>
               <div className="info-item">
                 <span className="info-label">Difficulty</span>

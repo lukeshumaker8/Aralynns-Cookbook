@@ -4,7 +4,7 @@ const headers = {
   'Content-Type': 'application/json',
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
 };
 
 export async function handler(event) {
@@ -202,6 +202,35 @@ export async function handler(event) {
         statusCode: 201,
         headers,
         body: JSON.stringify({ id: Number(recipeId), message: 'Recipe created successfully' }),
+      };
+    }
+
+    // DELETE /api/recipes/:id
+    if (path.match(/^\/\d+$/) && event.httpMethod === 'DELETE') {
+      const id = path.slice(1);
+
+      const recipeResult = await db.execute({
+        sql: 'SELECT id FROM recipes WHERE id = ?',
+        args: [id],
+      });
+
+      if (recipeResult.rows.length === 0) {
+        return {
+          statusCode: 404,
+          headers,
+          body: JSON.stringify({ error: 'Recipe not found' }),
+        };
+      }
+
+      await db.execute({
+        sql: 'DELETE FROM recipes WHERE id = ?',
+        args: [id],
+      });
+
+      return {
+        statusCode: 200,
+        headers,
+        body: JSON.stringify({ message: 'Recipe deleted successfully' }),
       };
     }
 

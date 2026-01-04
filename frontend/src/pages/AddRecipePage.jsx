@@ -16,16 +16,50 @@ function AddRecipePage() {
     image_url: '',
     prep_time: '',
     cook_time: '',
-    servings: '',
     difficulty: '',
     meal_type: '',
     cooking_method: '',
     recipe_url: ''
   })
 
+  const [ingredients, setIngredients] = useState([{ amount: '', unit: '', name: '' }])
+  const [instructions, setInstructions] = useState([''])
+
   const handleChange = (e) => {
     const { name, value } = e.target
     setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleIngredientChange = (index, field, value) => {
+    const updated = [...ingredients]
+    updated[index][field] = value
+    setIngredients(updated)
+  }
+
+  const addIngredient = () => {
+    setIngredients([...ingredients, { amount: '', unit: '', name: '' }])
+  }
+
+  const removeIngredient = (index) => {
+    if (ingredients.length > 1) {
+      setIngredients(ingredients.filter((_, i) => i !== index))
+    }
+  }
+
+  const handleInstructionChange = (index, value) => {
+    const updated = [...instructions]
+    updated[index] = value
+    setInstructions(updated)
+  }
+
+  const addInstruction = () => {
+    setInstructions([...instructions, ''])
+  }
+
+  const removeInstruction = (index) => {
+    if (instructions.length > 1) {
+      setInstructions(instructions.filter((_, i) => i !== index))
+    }
   }
 
   const handleSubmit = async (e) => {
@@ -34,11 +68,15 @@ function AddRecipePage() {
     setError(null)
 
     try {
+      const validIngredients = ingredients.filter(ing => ing.name.trim())
+      const validInstructions = instructions.filter(inst => inst.trim())
+
       const payload = {
         ...formData,
         prep_time: formData.prep_time ? parseInt(formData.prep_time) : null,
         cook_time: formData.cook_time ? parseInt(formData.cook_time) : null,
-        servings: formData.servings ? parseInt(formData.servings) : null
+        ingredients: validIngredients,
+        instructions: validInstructions
       }
 
       const res = await fetch('/api/recipes', {
@@ -138,19 +176,6 @@ function AddRecipePage() {
                 placeholder="30"
               />
             </div>
-
-            <div className="form-group">
-              <label htmlFor="servings">Servings</label>
-              <input
-                type="number"
-                id="servings"
-                name="servings"
-                value={formData.servings}
-                onChange={handleChange}
-                min="1"
-                placeholder="4"
-              />
-            </div>
           </div>
 
           <div className="form-row">
@@ -199,6 +224,77 @@ function AddRecipePage() {
               </select>
             </div>
           </div>
+        </div>
+
+        <div className="form-section">
+          <h2>Ingredients</h2>
+          <div className="ingredients-input-list">
+            {ingredients.map((ing, index) => (
+              <div key={index} className="ingredient-input-row">
+                <input
+                  type="text"
+                  placeholder="Amount"
+                  value={ing.amount}
+                  onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
+                  className="ingredient-amount-input"
+                />
+                <input
+                  type="text"
+                  placeholder="Unit"
+                  value={ing.unit}
+                  onChange={(e) => handleIngredientChange(index, 'unit', e.target.value)}
+                  className="ingredient-unit-input"
+                />
+                <input
+                  type="text"
+                  placeholder="Ingredient name"
+                  value={ing.name}
+                  onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
+                  className="ingredient-name-input"
+                />
+                <button
+                  type="button"
+                  className="remove-btn"
+                  onClick={() => removeIngredient(index)}
+                  disabled={ingredients.length === 1}
+                >
+                  X
+                </button>
+              </div>
+            ))}
+          </div>
+          <button type="button" className="add-btn" onClick={addIngredient}>
+            + Add Ingredient
+          </button>
+        </div>
+
+        <div className="form-section">
+          <h2>Instructions</h2>
+          <div className="instructions-input-list">
+            {instructions.map((inst, index) => (
+              <div key={index} className="instruction-input-row">
+                <span className="step-label">Step {index + 1}</span>
+                <textarea
+                  placeholder="Describe this step..."
+                  value={inst}
+                  onChange={(e) => handleInstructionChange(index, e.target.value)}
+                  className="instruction-input"
+                  rows="2"
+                />
+                <button
+                  type="button"
+                  className="remove-btn"
+                  onClick={() => removeInstruction(index)}
+                  disabled={instructions.length === 1}
+                >
+                  X
+                </button>
+              </div>
+            ))}
+          </div>
+          <button type="button" className="add-btn" onClick={addInstruction}>
+            + Add Step
+          </button>
         </div>
 
         <div className="form-section">
