@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
+import AddToListButton from '../components/AddToListButton'
 
 function RecipePage() {
   const { id } = useParams()
@@ -94,13 +95,18 @@ function RecipePage() {
           <div className="recipe-header-content">
             <div className="recipe-header-top">
               <span className="meal-type-badge">{recipe.meal_type}</span>
-              <button
-                className="delete-button"
-                onClick={handleDelete}
-                disabled={deleting}
-              >
-                {deleting ? 'Deleting...' : 'Delete Recipe'}
-              </button>
+              <div className="header-actions">
+                {recipe.ingredients?.length > 0 && (
+                  <AddToListButton recipe={recipe} variant="full" />
+                )}
+                <button
+                  className="delete-button"
+                  onClick={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? 'Deleting...' : 'Delete Recipe'}
+                </button>
+              </div>
             </div>
             <h1>{recipe.name}</h1>
             <p className="recipe-description-full">{recipe.description}</p>

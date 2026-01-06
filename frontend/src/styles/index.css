@@ -1189,3 +1189,381 @@ a {
     font-size: 0.9rem;
   }
 }
+
+/* ==================== */
+/* Shopping List Styles */
+/* ==================== */
+
+/* Add to List Button (Icon variant on cards) */
+.add-to-list-btn {
+  position: absolute;
+  bottom: 0.75rem;
+  right: 0.75rem;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  font-size: 1.5rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+  box-shadow: var(--shadow-md);
+  z-index: 10;
+}
+
+.add-to-list-btn:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+  transform: scale(1.1);
+}
+
+.add-to-list-btn.in-list {
+  background: var(--color-accent);
+}
+
+.add-to-list-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Add to List Button (Full variant) */
+.add-to-list-btn-full {
+  padding: 0.5rem 1rem;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.add-to-list-btn-full:hover:not(:disabled) {
+  background: var(--color-primary-dark);
+}
+
+.add-to-list-btn-full.in-list {
+  background: var(--color-accent);
+}
+
+.add-to-list-btn-full:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Header Actions */
+.header-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+/* Shopping List Badge */
+.shopping-list-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  min-width: 18px;
+  height: 18px;
+  background: #dc2626;
+  color: white;
+  border-radius: 9px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+}
+
+.nav-link-list {
+  position: relative;
+}
+
+/* Shopping List Page */
+.shopping-list-page {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.shopping-list-page h1 {
+  font-family: var(--font-heading);
+  font-size: 2rem;
+  color: var(--color-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.shopping-list-summary {
+  color: var(--color-text-light);
+  margin-bottom: 1.5rem;
+}
+
+/* Empty List State */
+.empty-list {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  display: block;
+  margin-bottom: 1rem;
+}
+
+.empty-list h2 {
+  font-family: var(--font-heading);
+  color: var(--color-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.empty-list p {
+  color: var(--color-text-light);
+  margin-bottom: 1.5rem;
+}
+
+/* Shopping List Controls */
+.shopping-list-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.5rem;
+}
+
+.control-group {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.toggle-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-size: 0.95rem;
+  color: var(--color-text);
+}
+
+.toggle-control input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--color-primary);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-danger {
+  padding: 0.5rem 1rem;
+  background: transparent;
+  color: #dc2626;
+  border: 2px solid #dc2626;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-danger:hover {
+  background: #dc2626;
+  color: white;
+}
+
+/* Category Sections */
+.shopping-list-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.category-section {
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.category-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-background);
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  color: var(--color-secondary);
+  margin: 0;
+}
+
+.category-icon {
+  font-size: 1.5rem;
+}
+
+.category-count {
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+/* Shopping Items */
+.shopping-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.shopping-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--color-border);
+  transition: var(--transition);
+}
+
+.shopping-item:last-child {
+  border-bottom: none;
+}
+
+.shopping-item.checked {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.shopping-item.checked .item-name {
+  text-decoration: line-through;
+  color: var(--color-text-light);
+}
+
+/* Custom Checkbox */
+.item-checkbox {
+  position: relative;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  padding-top: 2px;
+}
+
+.item-checkbox input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+}
+
+.checkmark {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--color-border);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+
+.item-checkbox:hover .checkmark {
+  border-color: var(--color-primary);
+}
+
+.item-checkbox input:checked ~ .checkmark {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.item-checkbox input:checked ~ .checkmark::after {
+  content: '✓';
+  color: white;
+  font-size: 0.875rem;
+  font-weight: 700;
+}
+
+/* Item Details */
+.item-details {
+  flex: 1;
+}
+
+.item-name {
+  font-weight: 500;
+  color: var(--color-text);
+  display: block;
+  margin-bottom: 0.25rem;
+}
+
+.item-amount,
+.item-amounts {
+  font-size: 0.875rem;
+  color: var(--color-text-light);
+}
+
+.item-amounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.amount-tag {
+  background: var(--color-background);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+}
+
+.recipe-link {
+  color: var(--color-primary);
+  margin-left: 0.25rem;
+}
+
+.recipe-link:hover {
+  text-decoration: underline;
+}
+
+/* Shopping List Responsive */
+@media (max-width: 768px) {
+  .shopping-list-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .control-group {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .action-buttons {
+    justify-content: stretch;
+  }
+
+  .action-buttons button {
+    flex: 1;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .add-to-list-btn-full {
+    width: 100%;
+    justify-content: center;
+  }
+}

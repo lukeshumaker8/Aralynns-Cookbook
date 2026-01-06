@@ -3,6 +3,7 @@ import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import RecipePage from './pages/RecipePage'
 import AddRecipePage from './pages/AddRecipePage'
+import ShoppingListPage from './pages/ShoppingListPage'
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
           <Route path="/" element={<HomePage />} />
           <Route path="/recipe/:id" element={<RecipePage />} />
           <Route path="/add" element={<AddRecipePage />} />
+          <Route path="/shopping-list" element={<ShoppingListPage />} />
         </Routes>
       </main>
       <footer className="footer">

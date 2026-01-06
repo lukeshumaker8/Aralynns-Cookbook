@@ -1,6 +1,13 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useShoppingList } from '../context/ShoppingListContext'
 
 function RecipeCard({ recipe }) {
+  const { addRecipe, removeRecipe, checkRecipeInList } = useShoppingList()
+  const [isAdding, setIsAdding] = useState(false)
+
+  const isInList = checkRecipeInList(recipe.id)
+
   const difficultyColor = {
     Easy: '#22c55e',
     Medium: '#f59e0b',
@@ -16,6 +23,31 @@ function RecipeCard({ recipe }) {
     return `${minutes}m`
   }
 
+  const handleAddToList = async (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+
+    if (isInList) {
+      removeRecipe(recipe.id)
+      return
+    }
+
+    setIsAdding(true)
+    try {
+      // Fetch full recipe with ingredients
+      const res = await fetch(`/api/recipes/${recipe.id}`)
+      const fullRecipe = await res.json()
+
+      if (fullRecipe.ingredients?.length) {
+        addRecipe(fullRecipe)
+      }
+    } catch (error) {
+      console.error('Error adding to list:', error)
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
   return (
     <Link to={`/recipe/${recipe.id}`} className="recipe-card">
       <div className="recipe-card-image">
@@ -26,6 +58,14 @@ function RecipeCard({ recipe }) {
             <span>🍽️</span>
           </div>
         )}
+        <button
+          className={`add-to-list-btn ${isInList ? 'in-list' : ''}`}
+          onClick={handleAddToList}
+          disabled={isAdding}
+          title={isInList ? 'Remove from list' : 'Add to shopping list'}
+        >
+          {isAdding ? '...' : isInList ? '✓' : '+'}
+        </button>
         <div className="recipe-card-badges">
           <span
             className="badge difficulty"
