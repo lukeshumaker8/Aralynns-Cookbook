@@ -145,3 +145,27 @@ export function toggleMergedItems(itemIds) {
   saveShoppingList(updated)
   return updated
 }
+
+// Add a standalone item (not from a recipe) to the shopping list
+export function addStandaloneItem(name, category) {
+  const currentList = getShoppingList()
+  const timestamp = Date.now()
+
+  const newItem = {
+    id: `standalone-${timestamp}`,
+    recipeId: null,
+    recipeName: 'Added manually',
+    ingredient: {
+      name: name,
+      amount: '',
+      unit: ''
+    },
+    category: category || categorizeIngredient(name),
+    checked: false,
+    addedAt: new Date().toISOString()
+  }
+
+  const updatedList = [...currentList, newItem]
+  saveShoppingList(updatedList)
+  return updatedList
+}

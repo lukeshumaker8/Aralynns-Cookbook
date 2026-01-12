@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useShoppingList } from '../context/ShoppingListContext'
 import { getCategoryInfo, getCategoryOrder } from '../utils/ingredientCategories'
+import { searchGroceryItems } from '../utils/groceryDatabase'
 
 function ShoppingListPage() {
   const {
     items,
     loading,
+    addItem,
     toggleItem,
     toggleMerged,
     clearAll,
@@ -16,6 +18,80 @@ function ShoppingListPage() {
 
   const [showMerged, setShowMerged] = useState(true)
   const [hideChecked, setHideChecked] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [searchResults, setSearchResults] = useState([])
+  const [showDropdown, setShowDropdown] = useState(false)
+  const [selectedIndex, setSelectedIndex] = useState(-1)
+  const searchRef = useRef(null)
+  const dropdownRef = useRef(null)
+
+  // Search grocery items as user types
+  useEffect(() => {
+    if (searchQuery.trim().length >= 2) {
+      const results = searchGroceryItems(searchQuery, 8)
+      setSearchResults(results)
+      setShowDropdown(true)
+      setSelectedIndex(-1)
+    } else {
+      setSearchResults([])
+      setShowDropdown(false)
+    }
+  }, [searchQuery])
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(e.target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target)
+      ) {
+        setShowDropdown(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const handleSearchKeyDown = (e) => {
+    if (!showDropdown) return
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault()
+      setSelectedIndex(prev =>
+        prev < searchResults.length - 1 ? prev + 1 : prev
+      )
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault()
+      setSelectedIndex(prev => prev > 0 ? prev - 1 : -1)
+    } else if (e.key === 'Enter') {
+      e.preventDefault()
+      if (selectedIndex >= 0 && searchResults[selectedIndex]) {
+        handleAddItem(searchResults[selectedIndex])
+      } else if (searchQuery.trim()) {
+        // Add custom item
+        handleAddCustomItem()
+      }
+    } else if (e.key === 'Escape') {
+      setShowDropdown(false)
+    }
+  }
+
+  const handleAddItem = (item) => {
+    addItem(item.name, item.category)
+    setSearchQuery('')
+    setShowDropdown(false)
+    setSelectedIndex(-1)
+  }
+
+  const handleAddCustomItem = () => {
+    if (searchQuery.trim()) {
+      addItem(searchQuery.trim())
+      setSearchQuery('')
+      setShowDropdown(false)
+    }
+  }
 
   // Group items by category
   const groupedItems = useMemo(() => {
@@ -70,10 +146,80 @@ function ShoppingListPage() {
     return (
       <div className="shopping-list-page">
         <h1>Shopping List</h1>
+
+        <div className="grocery-search-container">
+          <div className="grocery-search" ref={searchRef}>
+            <input
+              type="text"
+              className="grocery-search-input"
+              placeholder="Search groceries to add (e.g., strawberries, milk)..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              onFocus={() => searchQuery.length >= 2 && setShowDropdown(true)}
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                className="search-clear-btn"
+                onClick={() => {
+                  setSearchQuery('')
+                  setShowDropdown(false)
+                }}
+              >
+                x
+              </button>
+            )}
+          </div>
+
+          {showDropdown && (
+            <div className="grocery-search-dropdown" ref={dropdownRef}>
+              {searchResults.length > 0 ? (
+                <>
+                  {searchResults.map((item, index) => {
+                    const categoryInfo = getCategoryInfo(item.category)
+                    return (
+                      <button
+                        key={item.name}
+                        type="button"
+                        className={`dropdown-item ${index === selectedIndex ? 'selected' : ''}`}
+                        onClick={() => handleAddItem(item)}
+                      >
+                        <span className="dropdown-item-icon">{categoryInfo.icon}</span>
+                        <span className="dropdown-item-name">{item.name}</span>
+                        <span className="dropdown-item-category">{categoryInfo.name}</span>
+                      </button>
+                    )
+                  })}
+                  <button
+                    type="button"
+                    className={`dropdown-item dropdown-item-custom ${selectedIndex === -1 && searchQuery ? 'hint' : ''}`}
+                    onClick={handleAddCustomItem}
+                  >
+                    <span className="dropdown-item-icon">+</span>
+                    <span className="dropdown-item-name">Add "{searchQuery}"</span>
+                    <span className="dropdown-item-category">Custom item</span>
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="dropdown-item dropdown-item-custom"
+                  onClick={handleAddCustomItem}
+                >
+                  <span className="dropdown-item-icon">+</span>
+                  <span className="dropdown-item-name">Add "{searchQuery}"</span>
+                  <span className="dropdown-item-category">Custom item</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
         <div className="empty-list">
           <span className="empty-icon">🛒</span>
           <h2>Your shopping list is empty</h2>
-          <p>Add recipes to your shopping list from the recipe pages</p>
+          <p>Search above to add items, or add recipes from the recipe pages</p>
           <Link to="/" className="btn-primary">Browse Recipes</Link>
         </div>
       </div>
@@ -88,6 +234,75 @@ function ShoppingListPage() {
           {checkedCount} of {totalCount} items checked
         </p>
       </header>
+
+      <div className="grocery-search-container">
+        <div className="grocery-search" ref={searchRef}>
+          <input
+            type="text"
+            className="grocery-search-input"
+            placeholder="Search groceries to add (e.g., strawberries, milk)..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            onFocus={() => searchQuery.length >= 2 && setShowDropdown(true)}
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              className="search-clear-btn"
+              onClick={() => {
+                setSearchQuery('')
+                setShowDropdown(false)
+              }}
+            >
+              x
+            </button>
+          )}
+        </div>
+
+        {showDropdown && (
+          <div className="grocery-search-dropdown" ref={dropdownRef}>
+            {searchResults.length > 0 ? (
+              <>
+                {searchResults.map((item, index) => {
+                  const categoryInfo = getCategoryInfo(item.category)
+                  return (
+                    <button
+                      key={item.name}
+                      type="button"
+                      className={`dropdown-item ${index === selectedIndex ? 'selected' : ''}`}
+                      onClick={() => handleAddItem(item)}
+                    >
+                      <span className="dropdown-item-icon">{categoryInfo.icon}</span>
+                      <span className="dropdown-item-name">{item.name}</span>
+                      <span className="dropdown-item-category">{categoryInfo.name}</span>
+                    </button>
+                  )
+                })}
+                <button
+                  type="button"
+                  className={`dropdown-item dropdown-item-custom ${selectedIndex === -1 && searchQuery ? 'hint' : ''}`}
+                  onClick={handleAddCustomItem}
+                >
+                  <span className="dropdown-item-icon">+</span>
+                  <span className="dropdown-item-name">Add "{searchQuery}"</span>
+                  <span className="dropdown-item-category">Custom item</span>
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                className="dropdown-item dropdown-item-custom"
+                onClick={handleAddCustomItem}
+              >
+                <span className="dropdown-item-icon">+</span>
+                <span className="dropdown-item-name">Add "{searchQuery}"</span>
+                <span className="dropdown-item-category">Custom item</span>
+              </button>
+            )}
+          </div>
+        )}
+      </div>
 
       <div className="shopping-list-controls">
         <div className="control-group">

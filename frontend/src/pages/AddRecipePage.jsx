@@ -14,6 +14,9 @@ function AddRecipePage() {
   const [error, setError] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [imagePreview, setImagePreview] = useState(null)
+  const [importUrl, setImportUrl] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [importError, setImportError] = useState(null)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -29,6 +32,56 @@ function AddRecipePage() {
 
   const [ingredients, setIngredients] = useState([{ amount: '', unit: '', name: '' }])
   const [instructions, setInstructions] = useState([''])
+
+  const handleImportRecipe = async () => {
+    if (!importUrl.trim()) return
+
+    setImporting(true)
+    setImportError(null)
+
+    try {
+      const res = await fetch('/api/import-recipe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: importUrl })
+      })
+
+      const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to import recipe')
+      }
+
+      // Auto-fill the form with imported data
+      setFormData({
+        name: data.name || '',
+        description: data.description || '',
+        image_url: '',
+        prep_time: data.prep_time || '',
+        cook_time: data.cook_time || '',
+        difficulty: data.difficulty || '',
+        meal_type: data.meal_type || '',
+        cooking_method: data.cooking_method || '',
+        recipe_url: data.recipe_url || importUrl
+      })
+
+      // Set ingredients
+      if (data.ingredients && data.ingredients.length > 0) {
+        setIngredients(data.ingredients)
+      }
+
+      // Set instructions
+      if (data.instructions && data.instructions.length > 0) {
+        setInstructions(data.instructions)
+      }
+
+      setImportUrl('')
+    } catch (err) {
+      setImportError(err.message)
+    } finally {
+      setImporting(false)
+    }
+  }
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -145,6 +198,35 @@ function AddRecipePage() {
   return (
     <div className="add-recipe-page">
       <h1>Add New Recipe</h1>
+
+      <div className="import-section">
+        <h2>Import from URL</h2>
+        <p className="import-hint">Paste a recipe URL and let AI automatically extract the ingredients and instructions</p>
+        <div className="import-input-group">
+          <input
+            type="url"
+            className="import-url-input"
+            placeholder="https://example.com/recipe..."
+            value={importUrl}
+            onChange={(e) => setImportUrl(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleImportRecipe())}
+            disabled={importing}
+          />
+          <button
+            type="button"
+            className="btn-import"
+            onClick={handleImportRecipe}
+            disabled={importing || !importUrl.trim()}
+          >
+            {importing ? 'Importing...' : 'Import Recipe'}
+          </button>
+        </div>
+        {importError && <div className="import-error">{importError}</div>}
+      </div>
+
+      <div className="form-divider">
+        <span>or fill in manually</span>
+      </div>
 
       {error && <div className="form-error">{error}</div>}
 

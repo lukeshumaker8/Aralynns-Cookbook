@@ -9,6 +9,65 @@ function RecipePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [servings, setServings] = useState(2)
+
+  // Scale ingredient amount based on serving multiplier
+  const scaleAmount = (amount, baseServings) => {
+    if (!amount) return amount
+
+    const multiplier = servings / (baseServings || 2)
+
+    // Handle fractions like "1/2", "3/4"
+    const fractionMatch = amount.match(/^(\d+)\/(\d+)$/)
+    if (fractionMatch) {
+      const result = (parseInt(fractionMatch[1]) / parseInt(fractionMatch[2])) * multiplier
+      return formatNumber(result)
+    }
+
+    // Handle mixed numbers like "1 1/2"
+    const mixedMatch = amount.match(/^(\d+)\s+(\d+)\/(\d+)$/)
+    if (mixedMatch) {
+      const whole = parseInt(mixedMatch[1])
+      const frac = parseInt(mixedMatch[2]) / parseInt(mixedMatch[3])
+      const result = (whole + frac) * multiplier
+      return formatNumber(result)
+    }
+
+    // Handle plain numbers
+    const num = parseFloat(amount)
+    if (!isNaN(num)) {
+      return formatNumber(num * multiplier)
+    }
+
+    // Return unchanged for text amounts like "pinch", "to taste"
+    return amount
+  }
+
+  // Format numbers nicely (convert decimals to fractions when appropriate)
+  const formatNumber = (num) => {
+    if (num === Math.floor(num)) return num.toString()
+
+    // Common fraction conversions
+    const fractions = [
+      { decimal: 0.25, display: '1/4' },
+      { decimal: 0.33, display: '1/3' },
+      { decimal: 0.5, display: '1/2' },
+      { decimal: 0.67, display: '2/3' },
+      { decimal: 0.75, display: '3/4' }
+    ]
+
+    const whole = Math.floor(num)
+    const decimal = num - whole
+
+    for (const frac of fractions) {
+      if (Math.abs(decimal - frac.decimal) < 0.05) {
+        return whole > 0 ? `${whole} ${frac.display}` : frac.display
+      }
+    }
+
+    // Default to 1 decimal place
+    return num.toFixed(1).replace(/\.0$/, '')
+  }
 
   useEffect(() => {
     fetchRecipe()
@@ -152,12 +211,34 @@ function RecipePage() {
         <div className="recipe-content">
           {recipe.ingredients && recipe.ingredients.length > 0 && (
             <section className="ingredients-section">
-              <h2>Ingredients</h2>
+              <div className="ingredients-header">
+                <h2>Ingredients</h2>
+                <div className="servings-control">
+                  <button
+                    type="button"
+                    className="servings-btn"
+                    onClick={() => setServings(s => Math.max(1, s - 1))}
+                    disabled={servings <= 1}
+                  >
+                    -
+                  </button>
+                  <span className="servings-display">
+                    {servings} {servings === 1 ? 'serving' : 'servings'}
+                  </span>
+                  <button
+                    type="button"
+                    className="servings-btn"
+                    onClick={() => setServings(s => s + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+              </div>
               <ul className="ingredients-list">
                 {recipe.ingredients.map((ing, index) => (
                   <li key={index} className="ingredient-item">
                     <span className="ingredient-amount">
-                      {ing.amount} {ing.unit}
+                      {scaleAmount(ing.amount, recipe.servings || 2)} {ing.unit}
                     </span>
                     <span className="ingredient-name">{ing.name}</span>
                   </li>

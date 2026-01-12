@@ -8,7 +8,8 @@ import {
   clearCheckedItems,
   isRecipeInList,
   getMergedShoppingList,
-  toggleMergedItems
+  toggleMergedItems,
+  addStandaloneItem
 } from '../utils/shoppingListStorage'
 
 const ShoppingListContext = createContext(null)
@@ -59,6 +60,12 @@ export function ShoppingListProvider({ children }) {
     setItems(remaining)
   }
 
+  // Add a standalone item (not from a recipe)
+  const addItem = (name, category) => {
+    const updated = addStandaloneItem(name, category)
+    setItems(updated)
+  }
+
   // Check if a recipe is in the list
   const checkRecipeInList = (recipeId) => {
     return isRecipeInList(recipeId)
@@ -85,6 +92,7 @@ export function ShoppingListProvider({ children }) {
     loading,
     addRecipe,
     removeRecipe,
+    addItem,
     toggleItem,
     toggleMerged,
     clearAll,
