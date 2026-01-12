@@ -169,3 +169,15 @@ export function addStandaloneItem(name, category) {
   saveShoppingList(updatedList)
   return updatedList
 }
+
+// Update an item's amount and unit
+export function updateItemAmount(itemId, amount, unit) {
+  const currentList = getShoppingList()
+  const updated = currentList.map(item =>
+    item.id === itemId
+      ? { ...item, ingredient: { ...item.ingredient, amount, unit } }
+      : item
+  )
+  saveShoppingList(updated)
+  return updated
+}

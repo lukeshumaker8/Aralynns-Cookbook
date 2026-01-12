@@ -9,7 +9,8 @@ import {
   isRecipeInList,
   getMergedShoppingList,
   toggleMergedItems,
-  addStandaloneItem
+  addStandaloneItem,
+  updateItemAmount
 } from '../utils/shoppingListStorage'
 
 const ShoppingListContext = createContext(null)
@@ -66,6 +67,12 @@ export function ShoppingListProvider({ children }) {
     setItems(updated)
   }
 
+  // Update an item's amount and unit
+  const updateItem = (itemId, amount, unit) => {
+    const updated = updateItemAmount(itemId, amount, unit)
+    setItems(updated)
+  }
+
   // Check if a recipe is in the list
   const checkRecipeInList = (recipeId) => {
     return isRecipeInList(recipeId)
@@ -93,6 +100,7 @@ export function ShoppingListProvider({ children }) {
     addRecipe,
     removeRecipe,
     addItem,
+    updateItem,
     toggleItem,
     toggleMerged,
     clearAll,

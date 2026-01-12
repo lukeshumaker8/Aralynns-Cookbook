@@ -580,6 +580,36 @@ a {
   font-size: 0.95rem;
 }
 
+/* Ingredients Controls */
+.ingredients-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.unit-selector {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-family: var(--font-body);
+  background: white;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.unit-selector:hover {
+  border-color: var(--color-primary);
+}
+
+.unit-selector:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.1);
+}
+
 .ingredients-list {
   list-style: none;
 }
@@ -1708,6 +1738,84 @@ a {
 
 .recipe-link:hover {
   text-decoration: underline;
+}
+
+/* Edit Item Button */
+.edit-item-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-light);
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--radius-sm);
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+
+.edit-item-btn:hover {
+  color: var(--color-primary);
+  background: rgba(232, 93, 4, 0.08);
+}
+
+/* Item Edit Form */
+.item-edit-form {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.edit-amount-input,
+.edit-unit-input {
+  padding: 0.4rem 0.6rem;
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-family: var(--font-body);
+  transition: var(--transition);
+}
+
+.edit-amount-input {
+  width: 60px;
+}
+
+.edit-unit-input {
+  width: 70px;
+}
+
+.edit-amount-input:focus,
+.edit-unit-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.edit-save-btn,
+.edit-cancel-btn {
+  padding: 0.4rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.edit-save-btn {
+  background: var(--color-accent);
+  color: white;
+}
+
+.edit-save-btn:hover {
+  background: #00a383;
+}
+
+.edit-cancel-btn {
+  background: var(--color-background);
+  color: var(--color-text-light);
+}
+
+.edit-cancel-btn:hover {
+  background: var(--color-border);
 }
 
 /* Grocery Search */

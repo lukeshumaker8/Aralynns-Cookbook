@@ -9,6 +9,7 @@ function ShoppingListPage() {
     items,
     loading,
     addItem,
+    updateItem,
     toggleItem,
     toggleMerged,
     clearAll,
@@ -22,8 +23,40 @@ function ShoppingListPage() {
   const [searchResults, setSearchResults] = useState([])
   const [showDropdown, setShowDropdown] = useState(false)
   const [selectedIndex, setSelectedIndex] = useState(-1)
+  const [editingItem, setEditingItem] = useState(null)
+  const [editAmount, setEditAmount] = useState('')
+  const [editUnit, setEditUnit] = useState('')
   const searchRef = useRef(null)
   const dropdownRef = useRef(null)
+
+  const handleEditClick = (item) => {
+    setEditingItem(item.id)
+    setEditAmount(item.ingredient?.amount || '')
+    setEditUnit(item.ingredient?.unit || '')
+  }
+
+  const handleEditSave = () => {
+    if (editingItem) {
+      updateItem(editingItem, editAmount, editUnit)
+      setEditingItem(null)
+      setEditAmount('')
+      setEditUnit('')
+    }
+  }
+
+  const handleEditCancel = () => {
+    setEditingItem(null)
+    setEditAmount('')
+    setEditUnit('')
+  }
+
+  const handleEditKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleEditSave()
+    } else if (e.key === 'Escape') {
+      handleEditCancel()
+    }
+  }
 
   // Search grocery items as user types
   useEffect(() => {
@@ -390,18 +423,70 @@ function ShoppingListPage() {
                             </span>
                           ))}
                         </div>
+                      ) : editingItem === item.id ? (
+                        <div className="item-edit-form">
+                          <input
+                            type="text"
+                            className="edit-amount-input"
+                            value={editAmount}
+                            onChange={(e) => setEditAmount(e.target.value)}
+                            onKeyDown={handleEditKeyDown}
+                            placeholder="Amt"
+                            autoFocus
+                          />
+                          <input
+                            type="text"
+                            className="edit-unit-input"
+                            value={editUnit}
+                            onChange={(e) => setEditUnit(e.target.value)}
+                            onKeyDown={handleEditKeyDown}
+                            placeholder="Unit"
+                          />
+                          <button
+                            type="button"
+                            className="edit-save-btn"
+                            onClick={handleEditSave}
+                          >
+                            Save
+                          </button>
+                          <button
+                            type="button"
+                            className="edit-cancel-btn"
+                            onClick={handleEditCancel}
+                          >
+                            Cancel
+                          </button>
+                        </div>
                       ) : (
                         <span className="item-amount">
                           {item.ingredient?.amount} {item.ingredient?.unit}
-                          <Link
-                            to={`/recipe/${item.recipeId}`}
-                            className="recipe-link"
-                          >
-                            ({item.recipeName})
-                          </Link>
+                          {item.recipeId ? (
+                            <Link
+                              to={`/recipe/${item.recipeId}`}
+                              className="recipe-link"
+                            >
+                              ({item.recipeName})
+                            </Link>
+                          ) : (
+                            <span className="recipe-link">({item.recipeName})</span>
+                          )}
                         </span>
                       )}
                     </div>
+
+                    {!showMerged && editingItem !== item.id && (
+                      <button
+                        type="button"
+                        className="edit-item-btn"
+                        onClick={() => handleEditClick(item)}
+                        title="Edit amount"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                        </svg>
+                      </button>
+                    )}
                   </li>
                 ))}
               </ul>

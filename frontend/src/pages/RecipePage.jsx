@@ -10,6 +10,101 @@ function RecipePage() {
   const [error, setError] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [servings, setServings] = useState(2)
+  const [unitSystem, setUnitSystem] = useState('original')
+
+  // Unit conversion definitions (all relative to a base unit)
+  const unitConversions = {
+    // Volume conversions (base: ml)
+    cup: { toMl: 237, type: 'volume' },
+    cups: { toMl: 237, type: 'volume' },
+    tbsp: { toMl: 15, type: 'volume' },
+    tablespoon: { toMl: 15, type: 'volume' },
+    tablespoons: { toMl: 15, type: 'volume' },
+    tsp: { toMl: 5, type: 'volume' },
+    teaspoon: { toMl: 5, type: 'volume' },
+    teaspoons: { toMl: 5, type: 'volume' },
+    'fl oz': { toMl: 30, type: 'volume' },
+    'fluid oz': { toMl: 30, type: 'volume' },
+    ml: { toMl: 1, type: 'volume' },
+    l: { toMl: 1000, type: 'volume' },
+    liter: { toMl: 1000, type: 'volume' },
+    liters: { toMl: 1000, type: 'volume' },
+    // Weight conversions (base: g)
+    oz: { toG: 28.35, type: 'weight' },
+    ounce: { toG: 28.35, type: 'weight' },
+    ounces: { toG: 28.35, type: 'weight' },
+    lb: { toG: 454, type: 'weight' },
+    lbs: { toG: 454, type: 'weight' },
+    pound: { toG: 454, type: 'weight' },
+    pounds: { toG: 454, type: 'weight' },
+    g: { toG: 1, type: 'weight' },
+    gram: { toG: 1, type: 'weight' },
+    grams: { toG: 1, type: 'weight' },
+    kg: { toG: 1000, type: 'weight' },
+    kilogram: { toG: 1000, type: 'weight' },
+    kilograms: { toG: 1000, type: 'weight' }
+  }
+
+  // Convert unit based on selected system
+  const convertUnit = (amount, unit) => {
+    if (!amount || !unit || unitSystem === 'original') {
+      return { amount, unit }
+    }
+
+    const lowerUnit = unit.toLowerCase().trim()
+    const conversion = unitConversions[lowerUnit]
+
+    if (!conversion) {
+      return { amount, unit }
+    }
+
+    // Parse the scaled amount
+    let numericAmount = parseFloat(amount)
+    if (isNaN(numericAmount)) {
+      return { amount, unit }
+    }
+
+    if (conversion.type === 'volume') {
+      const ml = numericAmount * conversion.toMl
+
+      if (unitSystem === 'metric') {
+        if (ml >= 1000) {
+          return { amount: formatNumber(ml / 1000), unit: 'L' }
+        }
+        return { amount: formatNumber(ml), unit: 'ml' }
+      } else if (unitSystem === 'cups') {
+        if (ml >= 237) {
+          return { amount: formatNumber(ml / 237), unit: 'cups' }
+        } else if (ml >= 15) {
+          return { amount: formatNumber(ml / 15), unit: 'tbsp' }
+        } else {
+          return { amount: formatNumber(ml / 5), unit: 'tsp' }
+        }
+      } else if (unitSystem === 'tbsp') {
+        if (ml >= 15) {
+          return { amount: formatNumber(ml / 15), unit: 'tbsp' }
+        } else {
+          return { amount: formatNumber(ml / 5), unit: 'tsp' }
+        }
+      }
+    } else if (conversion.type === 'weight') {
+      const g = numericAmount * conversion.toG
+
+      if (unitSystem === 'metric') {
+        if (g >= 1000) {
+          return { amount: formatNumber(g / 1000), unit: 'kg' }
+        }
+        return { amount: formatNumber(g), unit: 'g' }
+      } else if (unitSystem === 'imperial') {
+        if (g >= 454) {
+          return { amount: formatNumber(g / 454), unit: 'lbs' }
+        }
+        return { amount: formatNumber(g / 28.35), unit: 'oz' }
+      }
+    }
+
+    return { amount, unit }
+  }
 
   // Scale ingredient amount based on serving multiplier
   const scaleAmount = (amount, baseServings) => {
@@ -213,36 +308,52 @@ function RecipePage() {
             <section className="ingredients-section">
               <div className="ingredients-header">
                 <h2>Ingredients</h2>
-                <div className="servings-control">
-                  <button
-                    type="button"
-                    className="servings-btn"
-                    onClick={() => setServings(s => Math.max(1, s - 1))}
-                    disabled={servings <= 1}
+                <div className="ingredients-controls">
+                  <div className="servings-control">
+                    <button
+                      type="button"
+                      className="servings-btn"
+                      onClick={() => setServings(s => Math.max(1, s - 1))}
+                      disabled={servings <= 1}
+                    >
+                      -
+                    </button>
+                    <span className="servings-display">
+                      {servings} {servings === 1 ? 'serving' : 'servings'}
+                    </span>
+                    <button
+                      type="button"
+                      className="servings-btn"
+                      onClick={() => setServings(s => s + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <select
+                    className="unit-selector"
+                    value={unitSystem}
+                    onChange={(e) => setUnitSystem(e.target.value)}
                   >
-                    -
-                  </button>
-                  <span className="servings-display">
-                    {servings} {servings === 1 ? 'serving' : 'servings'}
-                  </span>
-                  <button
-                    type="button"
-                    className="servings-btn"
-                    onClick={() => setServings(s => s + 1)}
-                  >
-                    +
-                  </button>
+                    <option value="original">Original Units</option>
+                    <option value="metric">Metric (ml/g)</option>
+                    <option value="cups">US Cups</option>
+                    <option value="tbsp">Tablespoons</option>
+                  </select>
                 </div>
               </div>
               <ul className="ingredients-list">
-                {recipe.ingredients.map((ing, index) => (
-                  <li key={index} className="ingredient-item">
-                    <span className="ingredient-amount">
-                      {scaleAmount(ing.amount, recipe.servings || 2)} {ing.unit}
-                    </span>
-                    <span className="ingredient-name">{ing.name}</span>
-                  </li>
-                ))}
+                {recipe.ingredients.map((ing, index) => {
+                  const scaledAmount = scaleAmount(ing.amount, recipe.servings || 2)
+                  const converted = convertUnit(scaledAmount, ing.unit)
+                  return (
+                    <li key={index} className="ingredient-item">
+                      <span className="ingredient-amount">
+                        {converted.amount} {converted.unit}
+                      </span>
+                      <span className="ingredient-name">{ing.name}</span>
+                    </li>
+                  )
+                })}
               </ul>
             </section>
           )}
