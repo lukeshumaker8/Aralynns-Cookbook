@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import TimerBar from '../components/TimerBar'
+import ChatDock from '../components/ChatDock'
 import { useTimers } from '../hooks/useTimers'
 import { findDurations, describeDuration } from '../utils/timerParser'
 
@@ -284,6 +285,23 @@ function CookModePage() {
         onAddMinute={addMinute}
         onRemove={removeTimer}
         onCustom={() => setShowTimerPicker(true)}
+      />
+
+      <ChatDock
+        scope="recipe"
+        recipeId={id}
+        variant="dark"
+        placeholder="Ask about this step..."
+        suggestions={[
+          'How do I know when this step is done?',
+          'Can I skip or substitute anything here?',
+          "What's the next step?",
+        ]}
+        getCurrentStep={() =>
+          currentStep
+            ? { number: stepIndex + 1, total: totalSteps, text: currentStep }
+            : null
+        }
       />
 
       {showTimerPicker && (

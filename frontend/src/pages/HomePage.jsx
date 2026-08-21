@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import RecipeCard from '../components/RecipeCard'
 import FilterBar from '../components/FilterBar'
-import ChatPanel from '../components/ChatPanel'
 
 function HomePage() {
   const [recipes, setRecipes] = useState([])
@@ -89,16 +88,6 @@ function HomePage() {
         </div>
       )}
 
-      <ChatPanel
-        scope="cookbook"
-        title="Ask the cookbook"
-        placeholder="What should I make tonight?"
-        suggestions={[
-          'What can I make in under 30 minutes?',
-          'I have chicken and rice — any ideas?',
-          'Create a recipe for chocolate chip cookies',
-        ]}
-      />
     </div>
   )
 }

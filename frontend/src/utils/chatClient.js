@@ -40,13 +40,19 @@ export class ChatError extends Error {
  *
  * @returns {Promise<{ text: string, recipe: object|null }>}
  */
-export async function sendChat({ scope, recipeId, messages, passcode }) {
+export async function sendChat({ scope, recipeId, messages, passcode, currentStep }) {
   let res
   try {
     res = await fetch('/api/chat', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ scope, recipeId, messages, passcode: passcode ?? getPasscode() }),
+      body: JSON.stringify({
+        scope,
+        recipeId,
+        messages,
+        currentStep,
+        passcode: passcode ?? getPasscode(),
+      }),
     })
   } catch {
     throw new ChatError('Could not reach the server. Check your connection.', 'network')

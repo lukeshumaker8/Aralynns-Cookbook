@@ -22,7 +22,7 @@ const CREATE_RECIPE_TOOL = {
   input_schema: RECIPE_SCHEMA,
 };
 
-function buildRecipeSystemPrompt(recipe) {
+function buildRecipeSystemPrompt(recipe, currentStep) {
   const ingredients = recipe.ingredients
     .map((i) => `- ${[i.amount, i.unit, i.name].filter(Boolean).join(' ')}`)
     .join('\n');
@@ -50,7 +50,16 @@ Instructions:
 ${instructions || '(none recorded)'}
 </recipe>
 
-Answer questions about this recipe: substitutions, scaling, technique, timing, storage, what to serve alongside it, why a step matters. Use the recipe above as the source of truth — if the user asks about something it does not cover, say so rather than inventing detail about their version.
+${
+  currentStep
+    ? `The user is cooking right now and is on step ${currentStep.number} of ${currentStep.total}:
+"${currentStep.text}"
+
+Assume any vague question ("how long?", "how do I know when it's ready?", "can I skip this?") is about that step unless they clearly mean something else. Answer fast and short — their hands are busy.
+
+`
+    : ''
+}Answer questions about this recipe: substitutions, scaling, technique, timing, storage, what to serve alongside it, why a step matters. Use the recipe above as the source of truth — if the user asks about something it does not cover, say so rather than inventing detail about their version.
 
 If the user asks you to create a new recipe (a variation, a side dish, anything), call the create_recipe tool so they can save it to the cookbook with one tap.
 
@@ -186,7 +195,19 @@ export async function handler(event) {
     if (scope === 'recipe') {
       const recipe = await loadRecipe(db, recipeId);
       if (!recipe) return json(404, { error: 'Recipe not found' });
-      system = buildRecipeSystemPrompt(recipe);
+
+      // Sent by Cook Mode so vague questions resolve against the visible step.
+      const step = body.currentStep;
+      const currentStep =
+        step && typeof step.text === 'string' && step.text.trim()
+          ? {
+              number: Number(step.number) || 1,
+              total: Number(step.total) || recipe.instructions.length,
+              text: step.text.slice(0, 2000),
+            }
+          : null;
+
+      system = buildRecipeSystemPrompt(recipe, currentStep);
     } else {
       system = buildCookbookSystemPrompt(await loadCookbook(db));
     }

@@ -5,6 +5,8 @@ import { ShoppingListProvider } from './context/ShoppingListContext'
 import App from './App'
 import './styles/index.css'
 import './styles/features.css'
+// Loaded last so the refreshed tokens and component polish win.
+import './styles/theme.css'
 
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {

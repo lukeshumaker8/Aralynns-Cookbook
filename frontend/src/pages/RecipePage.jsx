@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import AddToListButton from '../components/AddToListButton'
-import ChatPanel from '../components/ChatPanel'
 
 function RecipePage() {
   const { id } = useParams()
@@ -397,17 +396,6 @@ function RecipePage() {
         )}
       </article>
 
-      <ChatPanel
-        scope="recipe"
-        recipeId={id}
-        title={`Ask about ${recipe.name}`}
-        placeholder="Substitutions, timing, technique..."
-        suggestions={[
-          'What can I substitute if I am missing something?',
-          'How do I make this ahead of time?',
-          'What should I serve with this?',
-        ]}
-      />
     </div>
   )
 }
