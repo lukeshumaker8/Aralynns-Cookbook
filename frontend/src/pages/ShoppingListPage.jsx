@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useShoppingList } from '../context/ShoppingListContext'
 import { getCategoryInfo, getCategoryOrder } from '../utils/ingredientCategories'
 import { searchGroceryItems } from '../utils/groceryDatabase'
+import { formatQuantity } from '../utils/formatAmount'
 
 function ShoppingListPage() {
   const {
@@ -413,7 +414,7 @@ function ShoppingListPage() {
                         <div className="item-amounts">
                           {item.recipes.map((recipe, i) => (
                             <span key={i} className="amount-tag">
-                              {recipe.amount} {recipe.unit}
+                              {formatQuantity(recipe.amount, recipe.unit)}
                               <Link
                                 to={`/recipe/${recipe.id}`}
                                 className="recipe-link"
@@ -459,7 +460,7 @@ function ShoppingListPage() {
                         </div>
                       ) : (
                         <span className="item-amount">
-                          {item.ingredient?.amount} {item.ingredient?.unit}
+                          {formatQuantity(item.ingredient?.amount, item.ingredient?.unit)}
                           {item.recipeId ? (
                             <Link
                               to={`/recipe/${item.recipeId}`}

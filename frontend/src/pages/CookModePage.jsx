@@ -4,6 +4,7 @@ import TimerBar from '../components/TimerBar'
 import ChatDock from '../components/ChatDock'
 import { useTimers } from '../hooks/useTimers'
 import { findDurations, describeDuration } from '../utils/timerParser'
+import { formatQuantity } from '../utils/formatAmount'
 
 const PRESET_MINUTES = [1, 2, 3, 5, 10, 15, 20, 30, 45, 60]
 
@@ -215,7 +216,7 @@ function CookModePage() {
             <ul>
               {recipe.ingredients.map((ing, i) => (
                 <li key={i}>
-                  <strong>{[ing.amount, ing.unit].filter(Boolean).join(' ')}</strong> {ing.name}
+                  <strong>{formatQuantity(ing.amount, ing.unit)}</strong> {ing.name}
                 </li>
               ))}
             </ul>

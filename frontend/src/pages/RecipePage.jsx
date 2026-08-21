@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import AddToListButton from '../components/AddToListButton'
+import { parseAmount, formatAmount } from '../utils/formatAmount'
 
 function RecipePage() {
   const { id } = useParams()
@@ -9,12 +10,49 @@ function RecipePage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [deleting, setDeleting] = useState(false)
-  const [servings, setServings] = useState(2)
+  // Null until the cook adjusts the stepper. The baseline comes from the
+  // recipe itself — hardcoding 2 here meant every recipe (all of which are
+  // written for 4, 6 or 8) opened showing halved or quartered quantities.
+  const [servingsOverride, setServingsOverride] = useState(null)
   const [unitSystem, setUnitSystem] = useState('original')
 
-  // Unit conversion definitions (all relative to a base unit)
+  const baseServings = recipe?.servings || 2
+  const servings = servingsOverride ?? baseServings
+  const multiplier = servings / baseServings
+
+  // Mise en place is per-cook, not per-recipe, so this lives in sessionStorage
+  // rather than the database. Keyed by ingredient name so editing the recipe
+  // later doesn't shuffle which boxes are ticked.
+  const [checked, setChecked] = useState(() => new Set())
+
+  useEffect(() => {
+    try {
+      const stored = sessionStorage.getItem(`cookbook-checked-${id}`)
+      setChecked(new Set(stored ? JSON.parse(stored) : []))
+    } catch {
+      setChecked(new Set())
+    }
+  }, [id])
+
+  const toggleChecked = (name) => {
+    setChecked((current) => {
+      const next = new Set(current)
+      if (next.has(name)) next.delete(name)
+      else next.add(name)
+
+      try {
+        sessionStorage.setItem(`cookbook-checked-${id}`, JSON.stringify([...next]))
+      } catch {
+        // Private browsing — ticks just won't survive a reload.
+      }
+
+      return next
+    })
+  }
+
+  // Conversion factors, all relative to a base unit.
   const unitConversions = {
-    // Volume conversions (base: ml)
+    // Volume (base: ml)
     cup: { toMl: 237, type: 'volume' },
     cups: { toMl: 237, type: 'volume' },
     tbsp: { toMl: 15, type: 'volume' },
@@ -29,7 +67,7 @@ function RecipePage() {
     l: { toMl: 1000, type: 'volume' },
     liter: { toMl: 1000, type: 'volume' },
     liters: { toMl: 1000, type: 'volume' },
-    // Weight conversions (base: g)
+    // Weight (base: g)
     oz: { toG: 28.35, type: 'weight' },
     ounce: { toG: 28.35, type: 'weight' },
     ounces: { toG: 28.35, type: 'weight' },
@@ -45,123 +83,57 @@ function RecipePage() {
     kilograms: { toG: 1000, type: 'weight' }
   }
 
-  // Convert unit based on selected system
-  const convertUnit = (amount, unit) => {
-    if (!amount || !unit || unitSystem === 'original') {
-      return { amount, unit }
+  // Takes and returns a NUMBER. The previous version accepted the formatted
+  // string and ran parseFloat over it, so "1 1/2" silently became 1.
+  const convertUnit = (value, unit) => {
+    if (value === null || !unit || unitSystem === 'original') {
+      return { value, unit }
     }
 
-    const lowerUnit = unit.toLowerCase().trim()
-    const conversion = unitConversions[lowerUnit]
-
-    if (!conversion) {
-      return { amount, unit }
-    }
-
-    // Parse the scaled amount
-    let numericAmount = parseFloat(amount)
-    if (isNaN(numericAmount)) {
-      return { amount, unit }
-    }
+    const conversion = unitConversions[unit.toLowerCase().trim()]
+    if (!conversion) return { value, unit }
 
     if (conversion.type === 'volume') {
-      const ml = numericAmount * conversion.toMl
+      const ml = value * conversion.toMl
 
       if (unitSystem === 'metric') {
-        if (ml >= 1000) {
-          return { amount: formatNumber(ml / 1000), unit: 'L' }
-        }
-        return { amount: formatNumber(ml), unit: 'ml' }
-      } else if (unitSystem === 'cups') {
-        if (ml >= 237) {
-          return { amount: formatNumber(ml / 237), unit: 'cups' }
-        } else if (ml >= 15) {
-          return { amount: formatNumber(ml / 15), unit: 'tbsp' }
-        } else {
-          return { amount: formatNumber(ml / 5), unit: 'tsp' }
-        }
-      } else if (unitSystem === 'tbsp') {
-        if (ml >= 15) {
-          return { amount: formatNumber(ml / 15), unit: 'tbsp' }
-        } else {
-          return { amount: formatNumber(ml / 5), unit: 'tsp' }
-        }
+        return ml >= 1000 ? { value: ml / 1000, unit: 'L' } : { value: ml, unit: 'ml' }
       }
-    } else if (conversion.type === 'weight') {
-      const g = numericAmount * conversion.toG
+      if (unitSystem === 'cups') {
+        if (ml >= 237) return { value: ml / 237, unit: 'cups' }
+        if (ml >= 15) return { value: ml / 15, unit: 'tbsp' }
+        return { value: ml / 5, unit: 'tsp' }
+      }
+      if (unitSystem === 'tbsp') {
+        return ml >= 15 ? { value: ml / 15, unit: 'tbsp' } : { value: ml / 5, unit: 'tsp' }
+      }
+    }
+
+    if (conversion.type === 'weight') {
+      const g = value * conversion.toG
 
       if (unitSystem === 'metric') {
-        if (g >= 1000) {
-          return { amount: formatNumber(g / 1000), unit: 'kg' }
-        }
-        return { amount: formatNumber(g), unit: 'g' }
-      } else if (unitSystem === 'imperial') {
-        if (g >= 454) {
-          return { amount: formatNumber(g / 454), unit: 'lbs' }
-        }
-        return { amount: formatNumber(g / 28.35), unit: 'oz' }
+        return g >= 1000 ? { value: g / 1000, unit: 'kg' } : { value: g, unit: 'g' }
+      }
+      if (unitSystem === 'imperial') {
+        return g >= 454 ? { value: g / 454, unit: 'lbs' } : { value: g / 28.35, unit: 'oz' }
       }
     }
 
-    return { amount, unit }
+    return { value, unit }
   }
 
-  // Scale ingredient amount based on serving multiplier
-  const scaleAmount = (amount, baseServings) => {
-    if (!amount) return amount
+  // Parse -> scale -> convert -> format, all numeric until the last step.
+  // Unparseable amounts ("to taste", "a pinch") pass through untouched.
+  const displayIngredient = (ingredient) => {
+    const parsed = parseAmount(ingredient.amount)
 
-    const multiplier = servings / (baseServings || 2)
-
-    // Handle fractions like "1/2", "3/4"
-    const fractionMatch = amount.match(/^(\d+)\/(\d+)$/)
-    if (fractionMatch) {
-      const result = (parseInt(fractionMatch[1]) / parseInt(fractionMatch[2])) * multiplier
-      return formatNumber(result)
+    if (parsed === null) {
+      return { amount: ingredient.amount || '', unit: ingredient.unit || '' }
     }
 
-    // Handle mixed numbers like "1 1/2"
-    const mixedMatch = amount.match(/^(\d+)\s+(\d+)\/(\d+)$/)
-    if (mixedMatch) {
-      const whole = parseInt(mixedMatch[1])
-      const frac = parseInt(mixedMatch[2]) / parseInt(mixedMatch[3])
-      const result = (whole + frac) * multiplier
-      return formatNumber(result)
-    }
-
-    // Handle plain numbers
-    const num = parseFloat(amount)
-    if (!isNaN(num)) {
-      return formatNumber(num * multiplier)
-    }
-
-    // Return unchanged for text amounts like "pinch", "to taste"
-    return amount
-  }
-
-  // Format numbers nicely (convert decimals to fractions when appropriate)
-  const formatNumber = (num) => {
-    if (num === Math.floor(num)) return num.toString()
-
-    // Common fraction conversions
-    const fractions = [
-      { decimal: 0.25, display: '1/4' },
-      { decimal: 0.33, display: '1/3' },
-      { decimal: 0.5, display: '1/2' },
-      { decimal: 0.67, display: '2/3' },
-      { decimal: 0.75, display: '3/4' }
-    ]
-
-    const whole = Math.floor(num)
-    const decimal = num - whole
-
-    for (const frac of fractions) {
-      if (Math.abs(decimal - frac.decimal) < 0.05) {
-        return whole > 0 ? `${whole} ${frac.display}` : frac.display
-      }
-    }
-
-    // Default to 1 decimal place
-    return num.toFixed(1).replace(/\.0$/, '')
+    const converted = convertUnit(parsed * multiplier, ingredient.unit)
+    return { amount: formatAmount(converted.value), unit: converted.unit || '' }
   }
 
   useEffect(() => {
@@ -319,7 +291,7 @@ function RecipePage() {
                     <button
                       type="button"
                       className="servings-btn"
-                      onClick={() => setServings(s => Math.max(1, s - 1))}
+                      onClick={() => setServingsOverride(Math.max(1, servings - 1))}
                       disabled={servings <= 1}
                     >
                       -
@@ -330,7 +302,7 @@ function RecipePage() {
                     <button
                       type="button"
                       className="servings-btn"
-                      onClick={() => setServings(s => s + 1)}
+                      onClick={() => setServingsOverride(servings + 1)}
                     >
                       +
                     </button>
@@ -349,12 +321,22 @@ function RecipePage() {
               </div>
               <ul className="ingredients-list">
                 {recipe.ingredients.map((ing, index) => {
-                  const scaledAmount = scaleAmount(ing.amount, recipe.servings || 2)
-                  const converted = convertUnit(scaledAmount, ing.unit)
+                  const display = displayIngredient(ing)
+                  const isChecked = checked.has(ing.name)
                   return (
-                    <li key={index} className="ingredient-item">
+                    <li
+                      key={index}
+                      className={`ingredient-item ${isChecked ? 'is-checked' : ''}`}
+                    >
+                      <input
+                        type="checkbox"
+                        className="ingredient-check"
+                        checked={isChecked}
+                        onChange={() => toggleChecked(ing.name)}
+                        aria-label={`Mark ${ing.name} as prepared`}
+                      />
                       <span className="ingredient-amount">
-                        {converted.amount} {converted.unit}
+                        {display.amount} {display.unit}
                       </span>
                       <span className="ingredient-name">{ing.name}</span>
                     </li>

@@ -29,6 +29,9 @@
   --color-text: var(--ink-900);
   --color-text-light: var(--ink-500);
   --color-border: var(--paper-300);
+  /* index.css drives every heading and the footer background from this token.
+     It was a cold blue-grey sitting in an otherwise warm palette. */
+  --color-secondary: var(--ink-900);
 
   /* A real spacing scale instead of ad-hoc rem values. */
   --space-1: 0.25rem;
@@ -56,6 +59,9 @@
   --transition: all 0.2s var(--ease);
 
   --dock-height: 4.5rem;
+  /* Approximate: 1rem padding top and bottom around a ~2.5rem nav row.
+     Only used as a sticky offset, where a few pixels either way is invisible. */
+  --header-h: 4.5rem;
 }
 
 /* ---------- Base ---------- */
@@ -97,9 +103,13 @@ p {
   }
 }
 
-/* Room for the fixed chat dock at the bottom of every normal page. */
+/* Room for the fixed chat dock at the bottom of every normal page. The dock
+   itself grows by the home-indicator inset, so this has to as well or the last
+   row of content hides behind it on a notched phone. */
 .main-content {
-  padding-bottom: calc(var(--dock-height) + var(--space-6));
+  padding-bottom: calc(
+    var(--dock-height) + var(--space-6) + env(safe-area-inset-bottom, 0px)
+  );
 }
 
 /* A small-caps label used above headings and section titles. */
@@ -125,6 +135,17 @@ p {
   position: sticky;
   top: 0;
   z-index: 800;
+  /* viewport-fit=cover lets content run under the status bar; without this the
+     logo sits behind the clock when installed to the home screen. */
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Same reason, for the horizontal insets in landscape. Both already carry 2rem
+   of padding, so max() keeps that and only grows for the notch. */
+.header-container,
+.main-content {
+  padding-left: max(var(--space-6), env(safe-area-inset-left, 0px));
+  padding-right: max(var(--space-6), env(safe-area-inset-right, 0px));
 }
 
 .logo h1 {
@@ -258,7 +279,20 @@ p {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
+  /* `clip` still rounds off the hero image, but unlike `hidden` it does not
+     make this a scroll container — which would silently kill the sticky
+     ingredients column below. */
+  overflow: clip;
+}
+
+/* Keep the quantities on screen while reading step six. Only on wide layouts;
+   the two-column grid collapses on mobile, where the header sticks instead. */
+@media (min-width: 769px) {
+  .ingredients-section {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-4));
+    align-self: start;
+  }
 }
 
 .recipe-header h1 {
@@ -277,12 +311,38 @@ p {
   padding: var(--space-4) 0;
 }
 
+/* These two were translucent white, which only read because the peach gradient
+   sat behind them. On paper they were white-on-white — the whole prep/cook/
+   total time grid would have disappeared when the gradient came out. */
+.info-item {
+  background: var(--paper-100);
+  border: 1px solid var(--color-border);
+}
+
+.recipe-tags-detail .tag {
+  background: var(--paper-200);
+}
+
 .info-value {
   font-family: var(--font-heading);
   font-size: 1.15rem;
 }
 
+/* One shared measure column across every row, so the ingredient names line up
+   on a clean left edge. index.css used a flex row with a guessed 80px
+   min-width, which went ragged as soon as an amount was wider than the guess. */
+.ingredients-list {
+  display: grid;
+  grid-template-columns: auto max-content 1fr;
+  column-gap: var(--space-3);
+}
+
 .ingredient-item {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: baseline;
+  padding: 0.7rem 0;
   border-bottom: 1px solid var(--paper-200);
   transition: background 0.15s var(--ease);
 }
@@ -292,9 +352,42 @@ p {
 }
 
 .ingredient-amount {
+  text-align: right;
   font-variant-numeric: tabular-nums;
   font-weight: 600;
   color: var(--color-primary);
+  min-width: 0;
+}
+
+/* Tick ingredients off as you gather them. Session-scoped, so it resets
+   between cooks rather than persisting as though it were recipe data. */
+.ingredient-check {
+  width: 1.15rem;
+  height: 1.15rem;
+  align-self: center;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.ingredient-item.is-checked .ingredient-name,
+.ingredient-item.is-checked .ingredient-amount {
+  color: var(--ink-300);
+  text-decoration: line-through;
+  text-decoration-color: var(--paper-400);
+}
+
+/* Safari < 16 and Chrome < 117 have no subgrid — fall back to the old row. */
+@supports not (grid-template-columns: subgrid) {
+  .ingredients-list { display: block; }
+
+  .ingredient-item {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+  }
+
+  .ingredient-amount { min-width: 5.5rem; }
 }
 
 .instruction-step .step-number {

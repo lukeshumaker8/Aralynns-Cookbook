@@ -119,12 +119,12 @@ a {
 
 .nav-link:hover {
   color: var(--color-primary);
-  background: rgba(232, 93, 4, 0.08);
+  background: rgba(217, 82, 4, 0.08);
 }
 
 .nav-link.active {
   color: var(--color-primary);
-  background: rgba(232, 93, 4, 0.1);
+  background: rgba(217, 82, 4, 0.1);
 }
 
 .nav-link-add {
@@ -241,13 +241,13 @@ a {
 
 .filter-select:hover {
   border-color: var(--color-primary);
-  background-color: rgba(232, 93, 4, 0.02);
+  background-color: rgba(217, 82, 4, 0.02);
 }
 
 .filter-select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.1);
+  box-shadow: 0 0 0 3px rgba(217, 82, 4, 0.1);
 }
 
 .filter-select option {
@@ -607,7 +607,7 @@ a {
 .unit-selector:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.1);
+  box-shadow: 0 0 0 3px rgba(217, 82, 4, 0.1);
 }
 
 .ingredients-list {
@@ -761,7 +761,7 @@ a {
 .import-url-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.1);
+  box-shadow: 0 0 0 3px rgba(217, 82, 4, 0.1);
 }
 
 .import-url-input:disabled {
@@ -879,7 +879,7 @@ a {
 .form-group select:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.1);
+  box-shadow: 0 0 0 3px rgba(217, 82, 4, 0.1);
 }
 
 .form-group input::placeholder,
@@ -1077,7 +1077,7 @@ a {
 .instruction-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.1);
+  box-shadow: 0 0 0 3px rgba(217, 82, 4, 0.1);
 }
 
 /* Instructions Input List */
@@ -1118,7 +1118,7 @@ a {
 }
 
 .add-btn:hover {
-  background: rgba(232, 93, 4, 0.08);
+  background: rgba(217, 82, 4, 0.08);
 }
 
 .remove-btn {
@@ -1165,7 +1165,7 @@ a {
 
 .upload-label:hover {
   border-color: var(--color-primary);
-  background: rgba(232, 93, 4, 0.04);
+  background: rgba(217, 82, 4, 0.04);
 }
 
 .file-input {
@@ -1754,7 +1754,7 @@ a {
 
 .edit-item-btn:hover {
   color: var(--color-primary);
-  background: rgba(232, 93, 4, 0.08);
+  background: rgba(217, 82, 4, 0.08);
 }
 
 /* Item Edit Form */
@@ -1844,7 +1844,7 @@ a {
 .grocery-search-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(232, 93, 4, 0.1);
+  box-shadow: 0 0 0 3px rgba(217, 82, 4, 0.1);
 }
 
 .grocery-search-input::placeholder {
@@ -1905,7 +1905,7 @@ a {
 
 .dropdown-item:hover,
 .dropdown-item.selected {
-  background: rgba(232, 93, 4, 0.08);
+  background: rgba(217, 82, 4, 0.08);
 }
 
 .dropdown-item-icon {
