@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import { ShoppingListProvider } from './context/ShoppingListContext'
 import App from './App'
 import './styles/index.css'
+import './styles/features.css'
 
 // Register service worker for PWA
 if ('serviceWorker' in navigator) {

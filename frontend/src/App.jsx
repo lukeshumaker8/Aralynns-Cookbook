@@ -1,11 +1,25 @@
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, useLocation } from 'react-router-dom'
 import Header from './components/Header'
 import HomePage from './pages/HomePage'
 import RecipePage from './pages/RecipePage'
+import CookModePage from './pages/CookModePage'
 import AddRecipePage from './pages/AddRecipePage'
 import ShoppingListPage from './pages/ShoppingListPage'
 
 function App() {
+  const location = useLocation()
+
+  // Cook mode takes over the whole screen — no chrome around it.
+  const isCookMode = /^\/recipe\/[^/]+\/cook\/?$/.test(location.pathname)
+
+  if (isCookMode) {
+    return (
+      <Routes>
+        <Route path="/recipe/:id/cook" element={<CookModePage />} />
+      </Routes>
+    )
+  }
+
   return (
     <div className="app">
       <Header />

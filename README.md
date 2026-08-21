@@ -201,3 +201,77 @@ The frontend will be available at `http://localhost:5173` and the API at `http:/
 **Netlify build fails:**
 - Check that environment variables are set correctly
 - Make sure base directory is set to `frontend`
+
+---
+
+## AI Features
+
+Three features call the Anthropic API: recipe import from a URL, the chat panel
+on each recipe page, and the chat panel on the home page. All three run through
+Netlify Functions so the API key stays on the server and never reaches the
+browser.
+
+Model used: `claude-sonnet-5`.
+
+### Required environment variables
+
+| Variable | What it does |
+|---|---|
+| `ANTHROPIC_API_KEY` | Your key from [console.anthropic.com](https://console.anthropic.com) → Settings → API Keys. Starts with `sk-ant-api03-`. |
+| `CHAT_PASSCODE` | Shared passcode that unlocks the two chat panels. Browsing recipes does not require it. |
+
+Copy `.env.example` to `.env` and fill both in for local development. `.env` is
+gitignored — never commit it.
+
+For the deployed site, set the same two variables in the Netlify dashboard under
+**Site settings → Environment variables**, then redeploy. Variables added after a
+deploy do not apply to it.
+
+> Do **not** prefix these with `VITE_`. Anything starting with `VITE_` is inlined
+> into the public JavaScript bundle and readable by any visitor.
+
+### Running the AI features locally
+
+`npm run dev` starts the legacy Express server, which only serves `/api/recipes`.
+The AI endpoints live in Netlify Functions, so use the Netlify CLI instead:
+
+```bash
+npm install -g netlify-cli
+netlify dev
+```
+
+That serves the frontend and the functions together on one port and loads `.env`
+automatically.
+
+### Cook Mode
+
+Open any recipe with instructions and press **Start Cooking** for a full-screen,
+one-step-at-a-time view (`/recipe/:id/cook`).
+
+- Arrow buttons, keyboard arrows, or swipe move between steps; `Esc` exits.
+- The screen is kept awake while cooking, where the browser supports it.
+- Times written into a step ("bake for 25–30 minutes") become one-tap timers.
+  Ranges start at the lower bound, since that is when you should first check.
+- Timers count from a stored end time, so locking the phone does not stop them.
+  They survive a page reload and fire a sound, a notification, and a vibration.
+
+**iPhone Clock timers.** Web pages cannot create timers in the iOS Clock app —
+Apple provides no URL scheme for it. Cook Mode shows a  button next to each
+suggested timer that hands off to the Shortcuts app instead. To use it, create a
+shortcut once:
+
+1. Open **Shortcuts** → **+** → add the action **Start Timer**.
+2. Set the duration to **Shortcut Input**.
+3. Name the shortcut exactly **Cookbook Timer**.
+
+The in-app timer works with no setup; the hand-off is only needed if you want the
+timer to ring after you have closed the browser.
+
+### Chat
+
+The recipe page chat sees that one recipe in full and answers questions about
+substitutions, scaling, and technique. The home page chat sees every recipe's
+name and summary, so it can suggest what to cook and link to recipes directly.
+
+Either one can draft a new recipe — ask it to create something and a card appears
+with a **Save to cookbook** button that writes it to the database.

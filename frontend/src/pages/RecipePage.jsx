@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import AddToListButton from '../components/AddToListButton'
+import ChatPanel from '../components/ChatPanel'
 
 function RecipePage() {
   const { id } = useParams()
@@ -250,6 +251,12 @@ function RecipePage() {
             <div className="recipe-header-top">
               <span className="meal-type-badge">{recipe.meal_type}</span>
               <div className="header-actions">
+                {recipe.instructions?.length > 0 && (
+                  <Link to={`/recipe/${id}/cook`} className="cook-mode-btn">
+                    <span className="cook-mode-btn-icon">▶</span>
+                    Start Cooking
+                  </Link>
+                )}
                 {recipe.ingredients?.length > 0 && (
                   <AddToListButton recipe={recipe} variant="full" />
                 )}
@@ -389,6 +396,18 @@ function RecipePage() {
           </div>
         )}
       </article>
+
+      <ChatPanel
+        scope="recipe"
+        recipeId={id}
+        title={`Ask about ${recipe.name}`}
+        placeholder="Substitutions, timing, technique..."
+        suggestions={[
+          'What can I substitute if I am missing something?',
+          'How do I make this ahead of time?',
+          'What should I serve with this?',
+        ]}
+      />
     </div>
   )
 }
